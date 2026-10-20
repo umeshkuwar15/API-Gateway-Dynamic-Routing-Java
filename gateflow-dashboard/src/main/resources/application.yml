@@ -1,0 +1,23 @@
+server:
+  port: ${DASHBOARD_PORT:8084}
+
+spring:
+  application:
+    name: gateflow-dashboard
+  thymeleaf:
+    cache: false
+    mode: HTML
+
+gateflow:
+  gateway:
+    url: http://localhost:${GATEWAY_PORT:8080}
+    admin-secret: ${GATEFLOW_ADMIN_SECRET:GateFlowSuperSecretKey2026AdminTokenForInternalApiAuth}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always

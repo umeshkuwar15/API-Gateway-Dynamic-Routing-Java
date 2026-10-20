@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Interactive API Tester')}"></head>
+<body>
+
+<div class="gateflow-wrapper">
+    <aside th:replace="~{fragments/layout :: sidebar('tester')}"></aside>
+
+    <div class="gateflow-main">
+        <header th:replace="~{fragments/layout :: navbar('Interactive API Workbench')}"></header>
+
+        <div class="page-container">
+            <div class="mb-4">
+                <h5 class="fw-bold mb-1">Live Gateway API Tester</h5>
+                <p class="text-muted small mb-0">Dispatch real HTTP requests through the Spring Cloud Gateway on port 8080. Test dynamic routing, load balancing, and request interception.</p>
+            </div>
+
+            <div class="d-flex align-items-center gap-2 mb-4 flex-wrap">
+                <span class="text-muted small fw-semibold me-1">Quick Presets:</span>
+                <button type="button" class="btn btn-sm btn-outline-primary" onclick="setPreset('GET', '/users', '')">
+                    <span class="badge-method badge-get me-1">GET</span> /users
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-primary" onclick="setPreset('GET', '/products', '')">
+                    <span class="badge-method badge-get me-1">GET</span> /products
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-primary" onclick="setPreset('GET', '/orders', '')">
+                    <span class="badge-method badge-get me-1">GET</span> /orders
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-success" onclick="setPreset('POST', '/users', '{\n  &quot;username&quot;: &quot;sarah_connor&quot;,\n  &quot;email&quot;: &quot;sarah@cyberdyne.io&quot;,\n  &quot;firstName&quot;: &quot;Sarah&quot;,\n  &quot;lastName&quot;: &quot;Connor&quot;,\n  &quot;department&quot;: &quot;Operations&quot;,\n  &quot;active&quot;: true\n}')">
+                    <span class="badge-method badge-post me-1">POST</span> /users
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-success" onclick="setPreset('POST', '/products', '{\n  &quot;name&quot;: &quot;UltraWide Curved Monitor 34\&quot;&quot;,\n  &quot;description&quot;: &quot;144Hz 1ms IPS gaming display&quot;,\n  &quot;price&quot;: 499.99,\n  &quot;stockQuantity&quot;: 15,\n  &quot;category&quot;: &quot;Displays&quot;\n}')">
+                    <span class="badge-method badge-post me-1">POST</span> /products
+                </button>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-lg-6">
+                    <div class="tester-card">
+                        <h6 class="fw-bold mb-3 d-flex align-items-center gap-2">
+                            <i class="bi bi-send text-primary"></i> Request Composer
+                        </h6>
+
+                        <form th:action="@{/tester/send}" method="post">
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold text-muted">Gateway Endpoint Path</label>
+                                <div class="input-group">
+                                    <select name="method" id="testerMethod" class="form-select bg-light fw-bold font-mono" style="max-width: 120px;">
+                                        <option value="GET" th:selected="${method == 'GET'}">GET</option>
+                                        <option value="POST" th:selected="${method == 'POST'}">POST</option>
+                                        <option value="PUT" th:selected="${method == 'PUT'}">PUT</option>
+                                        <option value="PATCH" th:selected="${method == 'PATCH'}">PATCH</option>
+                                        <option value="DELETE" th:selected="${method == 'DELETE'}">DELETE</option>
+                                    </select>
+                                    <span class="input-group-text bg-light border-start-0 font-mono small text-muted" th:text="${gatewayUrl}">http://localhost:8080</span>
+                                    <input type="text" name="path" id="testerPath" class="form-control font-mono"
+                                           th:value="${path} ?: '/users'" placeholder="/users" required>
+                                </div>
+                            </div>
+
+                            <div class="mb-3" id="testerBodyContainer">
+                                <div class="d-flex align-items-center justify-content-between mb-1">
+                                    <label class="form-label small fw-semibold text-muted mb-0">JSON Request Body (POST / PUT / PATCH)</label>
+                                    <small class="text-muted">Content-Type: application/json</small>
+                                </div>
+                                <textarea name="body" id="testerBody" class="form-control console-editor" rows="10"
+                                          placeholder="Enter JSON request payload..." th:text="${body}"></textarea>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary-gradient w-100 py-2 fs-6">
+                                <i class="bi bi-play-fill me-1"></i> Send Request Through Gateway
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="col-lg-6">
+                    <div class="tester-card h-100 d-flex flex-column">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <h6 class="fw-bold mb-0 d-flex align-items-center gap-2">
+                                <i class="bi bi-cpu text-success"></i> Gateway Response
+                            </h6>
+                            <div th:if="${hasResponse}" class="d-flex align-items-center gap-2">
+                                <span class="badge"
+                                      th:classappend="${result.status < 400} ? 'bg-success' : 'bg-danger'"
+                                      style="font-size: 13px;">
+                                    <span th:text="${result.status}">200</span>
+                                </span>
+                                <span class="badge bg-light text-dark border font-mono small">
+                                    <i class="bi bi-stopwatch me-1"></i><span th:text="${result.responseTimeMs} + ' ms'">45 ms</span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div th:if="${!hasResponse}" class="d-flex flex-column align-items-center justify-content-center flex-grow-1 text-center py-5 text-muted">
+                            <div class="p-3 bg-light rounded-circle mb-3 fs-2 text-secondary">
+                                <i class="bi bi-code-slash"></i>
+                            </div>
+                            <h6 class="fw-bold">No Request Dispatched Yet</h6>
+                            <p class="small text-muted" style="max-width: 320px;">
+                                Select an HTTP method, type a path like <code>/users</code>, and click <strong>Send Request</strong> to execute real traffic through the gateway.
+                            </p>
+                        </div>
+
+                        <div th:if="${hasResponse}" class="flex-grow-1 d-flex flex-column">
+                            <div class="d-flex align-items-center justify-content-between small text-muted mb-2">
+                                <span class="font-mono" th:text="${result.method} + ' ' + ${result.url}">GET http://localhost:8080/users</span>
+                                <span class="badge bg-secondary-subtle text-secondary">JSON</span>
+                            </div>
+
+                            <div class="console-response format-json flex-grow-1" th:text="${result.responseBody}">{}</div>
+
+                            <div class="accordion accordion-flush mt-3" id="headersAccordion">
+                                <div class="accordion-item border rounded">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button collapsed py-2 px-3 small" type="button" data-bs-toggle="collapse" data-bs-target="#collapseHeaders">
+                                            <i class="bi bi-list-columns-reverse me-2"></i> Response Headers (<span th:text="${#maps.size(result.headers)}">0</span>)
+                                        </button>
+                                    </h2>
+                                    <div id="collapseHeaders" class="accordion-collapse collapse" data-bs-parent="#headersAccordion">
+                                        <div class="accordion-body p-2 small font-mono bg-light" style="max-height: 160px; overflow-y: auto;">
+                                            <div th:each="entry : ${result.headers}" class="d-flex gap-2 border-bottom py-1">
+                                                <span class="text-primary fw-semibold" th:text="${entry.key} + ':'">Content-Type:</span>
+                                                <span class="text-dark" th:text="${entry.value}">application/json</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function setPreset(method, path, body) {
+    document.getElementById('testerMethod').value = method;
+    document.getElementById('testerPath').value = path;
+    document.getElementById('testerBody').value = body;
+    const bodyContainer = document.getElementById('testerBodyContainer');
+    if (bodyContainer) {
+        bodyContainer.style.opacity = (method === 'GET' || method === 'DELETE') ? '0.5' : '1';
+    }
+}
+</script>
+
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

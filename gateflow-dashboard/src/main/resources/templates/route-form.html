@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${isEdit} ? 'Edit Dynamic Route' : 'Create Dynamic Route')}"></head>
+<body>
+
+<div class="gateflow-wrapper">
+    <aside th:replace="~{fragments/layout :: sidebar('routes')}"></aside>
+
+    <div class="gateflow-main">
+        <header th:replace="~{fragments/layout :: navbar(${isEdit} ? 'Edit Route: ' + ${route.id} : 'Create New Dynamic Route')}"></header>
+
+        <div class="page-container" style="max-width: 900px;">
+            <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white">
+                <div class="d-flex align-items-center justify-content-between mb-4 pb-3 border-bottom">
+                    <div>
+                        <h4 class="fw-bold mb-1" th:text="${isEdit} ? 'Update Route Configuration' : 'Create Dynamic Route'">Create Dynamic Route</h4>
+                        <p class="text-muted small mb-0">Define predicates and target URI. The route will be persisted in MySQL and activated instantly in Spring Cloud Gateway.</p>
+                    </div>
+                    <a th:href="@{/routes}" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-arrow-left me-1"></i> Back to Routes
+                    </a>
+                </div>
+
+                <form th:action="@{/routes/save}" method="post">
+                    <input type="hidden" name="isEdit" th:value="${isEdit}">
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Route ID <span class="text-danger">*</span></label>
+                            <input type="text" name="id" class="form-control font-mono"
+                                   th:value="${route.id}"
+                                   th:readonly="${isEdit}"
+                                   placeholder="e.g. custom-service-route" required>
+                            <div class="form-text small">Unique identifier (letters, digits, underscores, hyphens).</div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Route Display Name <span class="text-danger">*</span></label>
+                            <input type="text" name="routeName" class="form-control"
+                                   th:value="${route.routeName}"
+                                   placeholder="e.g. Payment Gateway Service" required>
+                            <div class="form-text small">Human-readable service title.</div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Path Predicate <span class="text-danger">*</span></label>
+                            <input type="text" name="pathPredicate" class="form-control font-mono"
+                                   th:value="${route.pathPredicate}"
+                                   placeholder="e.g. /payments/**" required>
+                            <div class="form-text small">Ant-style pattern matching incoming requests (must start with '/').</div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Destination URI <span class="text-danger">*</span></label>
+                            <input type="text" name="destinationUri" class="form-control font-mono"
+                                   th:value="${route.destinationUri}"
+                                   placeholder="e.g. http://localhost:8085" required>
+                            <div class="form-text small">Target service URL where traffic will be proxied.</div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Supported HTTP Methods</label>
+                            <input type="text" name="httpMethods" class="form-control font-mono"
+                                   th:value="${route.httpMethods}"
+                                   placeholder="GET,POST,PUT,DELETE,PATCH">
+                            <div class="form-text small">Comma-separated list of allowed HTTP verbs or 'ALL'.</div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">Order Priority</label>
+                            <input type="number" name="orderIndex" class="form-control"
+                                   th:value="${route.orderIndex}" min="0" value="0">
+                            <div class="form-text small">Lower numbers match first.</div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">Strip Prefix Parts</label>
+                            <input type="number" name="stripPrefixParts" class="form-control"
+                                   th:value="${route.stripPrefixParts}" min="0" value="0">
+                            <div class="form-text small">Segments to strip (0 = keep path).</div>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Description</label>
+                            <textarea name="description" class="form-control" rows="2"
+                                      placeholder="Brief description of the backend service and routing purpose..."
+                                      th:text="${route.description}"></textarea>
+                        </div>
+
+                        <div class="col-12 mt-3">
+                            <div class="form-check form-switch fs-5">
+                                <input class="form-check-input" type="checkbox" name="enabled" id="enabledSwitch"
+                                       th:checked="${route.enabled}" value="true">
+                                <label class="form-check-label fs-6 fw-semibold" for="enabledSwitch">
+                                    Enable Route Immediately
+                                </label>
+                            </div>
+                            <small class="text-muted d-block ms-4">When disabled, requests matching this path predicate will not be routed.</small>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center justify-content-end gap-2 pt-3 border-top">
+                        <a th:href="@{/routes}" class="btn btn-light px-4">Cancel</a>
+                        <button type="submit" class="btn btn-primary-gradient px-4">
+                            <i class="bi bi-check-lg me-1"></i> <span th:text="${isEdit} ? 'Update Route' : 'Save & Activate Route'">Save Route</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

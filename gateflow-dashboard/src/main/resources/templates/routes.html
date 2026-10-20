@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Dynamic Route Management')}"></head>
+<body>
+
+<div class="gateflow-wrapper">
+    <aside th:replace="~{fragments/layout :: sidebar('routes')}"></aside>
+
+    <div class="gateflow-main">
+        <header th:replace="~{fragments/layout :: navbar('Dynamic Route Management')}"></header>
+
+        <div class="page-container">
+            <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i>
+                <span th:text="${successMessage}">Operation successful!</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <span th:text="${errorMessage}">Error occurred!</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+            <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
+                <div>
+                    <h5 class="fw-bold mb-1">Configured Gateway Routes</h5>
+                    <p class="text-muted small mb-0">Changes take effect immediately at runtime via Spring Cloud Gateway's reactive refresh events.</p>
+                </div>
+                <div class="d-flex align-items-center gap-3">
+                    <div class="input-group" style="width: 280px;">
+                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                        <input type="text" class="form-control border-start-0 table-search-input" data-table-target="routesTable" placeholder="Search routes...">
+                    </div>
+                    <a th:href="@{/routes/new}" class="btn btn-primary-gradient">
+                        <i class="bi bi-plus-lg me-1"></i> Create Dynamic Route
+                    </a>
+                </div>
+            </div>
+
+            <div class="custom-table-card">
+                <div class="table-responsive">
+                    <table class="table custom-table" id="routesTable">
+                        <thead>
+                            <tr>
+                                <th>Status</th>
+                                <th>Route ID</th>
+                                <th>Route Name</th>
+                                <th>Path Predicate</th>
+                                <th>Destination URI</th>
+                                <th>Methods</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:if="${#lists.isEmpty(routes)}">
+                                <td colspan="7" class="text-center py-5 text-muted">
+                                    No dynamic routes configured. Click "Create Dynamic Route" to add one!
+                                </td>
+                            </tr>
+                            <tr th:each="route : ${routes}">
+                                <td>
+                                    <form th:id="'toggle-form-' + ${route.id}" th:action="@{'/routes/toggle/' + ${route.id}}" method="post">
+                                        <input type="hidden" name="enabled" th:value="${!route.enabled}">
+                                        <button type="submit" class="btn btn-sm p-0 border-0"
+                                                th:title="${route.enabled} ? 'Click to Disable' : 'Click to Enable'">
+                                            <span th:if="${route.enabled}" class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 rounded-pill">
+                                                <i class="bi bi-check-circle-fill me-1"></i> Enabled
+                                            </span>
+                                            <span th:unless="${route.enabled}" class="badge bg-secondary-subtle text-secondary border px-2 py-1 rounded-pill">
+                                                <i class="bi bi-dash-circle me-1"></i> Disabled
+                                            </span>
+                                        </button>
+                                    </form>
+                                </td>
+                                <td>
+                                    <span class="font-mono fw-bold text-dark" th:text="${route.id}">user-service-route</span>
+                                </td>
+                                <td>
+                                    <div class="fw-semibold" th:text="${route.routeName}">User Service</div>
+                                    <small class="text-muted" th:text="${route.description}">Route description</small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-primary border font-mono px-2 py-1" th:text="${route.pathPredicate}">/users/**</span>
+                                </td>
+                                <td>
+                                    <span class="font-mono text-secondary small" th:text="${route.destinationUri}">http://localhost:8081</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark border font-mono small" th:text="${route.httpMethods}">GET,POST</span>
+                                </td>
+                                <td class="text-end">
+                                    <div class="d-flex justify-content-end gap-2">
+                                        <a th:href="@{'/routes/edit/' + ${route.id}}" class="btn btn-sm btn-outline-secondary" title="Edit Route">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <form th:id="'delete-form-' + ${route.id}" th:action="@{'/routes/delete/' + ${route.id}}" method="post" class="d-inline">
+                                            <button type="button" class="btn btn-sm btn-outline-danger"
+                                                    th:onclick="'confirmAction(\'Are you sure you want to delete route \\'' + ${route.id} + '\\'? This will immediately unregister it from the gateway.\', \'delete-form-' + ${route.id} + '\')'"
+                                                    title="Delete Route">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

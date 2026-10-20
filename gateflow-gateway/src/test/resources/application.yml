@@ -1,0 +1,13 @@
+server:
+  port: 0
+
+spring:
+  application:
+    name: gateflow-gateway-test
+  r2dbc:
+    url: r2dbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:gateflow_db}
+    username: ${MYSQL_USER:root}
+    password: ${MYSQL_PASSWORD:root}
+    properties:
+      sslMode: DISABLED
+      useServerPrepareStatement: true
